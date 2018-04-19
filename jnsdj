@@ -1,0 +1,57 @@
+public void loadUserInformation() {
+    DatabaseReference rootRef = FirebaseDatabase.getInstance().getReference();
+    final DatabaseReference usesrRef = rootRef.child("Users").child(Uid);
+    final ValueEventListener eventListener = new ValueEventListener() {
+        @Override
+        public void onDataChange(DataSnapshot dataSnapshot) {
+            ImageView profilePic = (ImageView) findViewById(R.id.imageView);
+            TextView Name = (TextView) findViewById(R.id.name);
+            TextView Status = (TextView) findViewById(R.id.status);
+            for (DataSnapshot postSnapshot : dataSnapshot.getChildren()) {
+                String name = dataSnapshot.child("Name").getValue().toString();
+                String status = dataSnapshot.child("Status").getValue().toString();
+                String image = dataSnapshot.child("Image").getValue().toString();
+                try {
+                URL url = new URL(image);
+                Bitmap image = BitmapFactory.decodeStream(url.openConnection().getInputStream());
+                toGrayscale(image,profilePic);
+                } catch(IOException e) {
+                System.out.println(e);
+                }
+
+                Name.setText(name);
+                Status.setText(status);
+
+                Name.setVisibility(View.VISIBLE);
+                Status.setVisibility(View.VISIBLE);
+
+                //Picasso.get().load(image).into(profilePic);
+
+            }
+        }
+
+        @Override
+        public void onCancelled(DatabaseError databaseError) {
+            Toast.makeText(getApplicationContext(), "Error Loading UserDetails", Toast.LENGTH_LONG).show();
+        }
+    };
+    usesrRef.addListenerForSingleValueEvent(eventListener);
+}
+
+
+public void toGrayscale(Bitmap bmpOriginal,ImageView profilePic)
+       {
+           int width, height;
+           height = bmpOriginal.getHeight();
+           width = bmpOriginal.getWidth();
+
+           Bitmap bmpGrayscale = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+           Canvas c = new Canvas(bmpGrayscale);
+           Paint paint = new Paint();
+           ColorMatrix cm = new ColorMatrix();
+           cm.setSaturation(0);
+           ColorMatrixColorFilter f = new ColorMatrixColorFilter(cm);
+           paint.setColorFilter(f);
+           c.drawBitmap(bmpOriginal, 0, 0, paint);
+           profilePic.setImageBitmap(bitmap);
+       }
